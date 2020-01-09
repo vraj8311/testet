@@ -1,0 +1,32 @@
+import sys
+import boto3
+from awsglue.transforms import *
+from awsglue.utils import getResolvedOptions
+from pyspark.context import SparkContext
+from awsglue.context import GlueContext
+from awsglue.job import Job
+
+## @params: [JOB_NAME]
+
+args = getResolvedOptions(sys.argv, ['JOB_NAME'])
+
+# job bootstrapping
+sc = SparkContext()
+glueContext = GlueContext(sc)
+spark = glueContext.spark_session
+job = Job(glueContext)
+
+job.init(args['JOB_NAME'], args)
+
+# transformations using the Glue library
+
+datasource0 = glueContext.create_dynamic_frame_from_catalog(database =“default”,table_name =“macieevalvgi_ops_int_macie_poc”, transformation_ctx =“datasource0”)
+applymapping1 = ApplyMapping.apply(frame = datasource0, mappings = [(“value”, “string”, “value”, “string”)], transformation_ctx = “applymapping1”)
+resolvechoice2 = ResolveChoice.apply(frame = applymapping1, choice = “make_struct”, transformation_ctx = “resolvechoice2”)
+dropnullfields3 = DropNullFields.apply(frame = resolvechoice2, transformation_ctx = “dropnullfields3”)
+datasink4 = glueContext.write_dynamic_frame_from_options(frame = "dropnullfields3", connection_type = “s3”, connection_options = {“path”: “s3://vgi-ops-int-macie-poc/”}, format = “parquet”, transformation_ctx = “datasink4”)
+
+# commit the job for bookmarking the progress
+job.commit()
+ 
+
